@@ -53,7 +53,7 @@ project.
 A code example:
 
 ```forth
-melon> fun: say-hello 'hello!' output ;
+melon> fun: say-hello 'hello! output ;
 melon> say-hello
 hello!
 
@@ -62,4 +62,115 @@ melon> say ola!
 ola!
 
 ```
+
+### Functions are `fun` in Melon!
+
+In melon, words are defined with `FUN: <name> <operations> ;`
+
+Melon also has macros, which are syntactic sugar for a more
+complex operation we will see later (mode switching)
+
+relevant example session (along with some docs):
+
+```forth
+melon> 'on debug
+Debug set to 'on
+
+melon> macro maker
+melon>    fun: 'what?? output ;
+melon> endmacro
+Defined Macro maker
+
+melon> maker f
+Defined f
+
+melon> expand-last
+__________________________________
+
+call MAKER:
+
+    [FUN:] 'what?? OUTPUT [;]
+
+call fun:
+
+    NEXT CREATE [COMPILE]
+
+...
+
+melon> 'next help
+__________________________________
+NEXT ( -- n )
+
+Pushes a single word from
+*compilation stream* to the
+stack.
+
+example:
+
+melon> next foo
+melon> peek
+foo
+
+melon> 'create help
+__________________________________
+CREATE ( n -- )
+
+Creates a new word entry, the new
+word's name is dropped from the
+stack.
+
+example:
+
+melon> 'foo create
+Defined foo
+
+melon> words
+output create peek words ... foo
+
+
+melon> 'compile help
+__________________________________
+COMPILE ( -- )
+
+Sets runtime state to compile.
+This means every word from now on
+will be compiled and inserted into
+the newest word entry's code.
+
+commonly used in conjunction with
+`[` and `]` to define functions
+which create functions.
+
+example:
+
+melon> 'foo create
+Defined foo
+
+melon> COMPILE
+In Compilation mode
+
+melon> 'bar output
+melon> # no output, we're in compile mode
+melon> INTERPRET
+Exit Compilation mode
+
+melon> foo
+bar
+
+Note:
+
+COMPILE/INTERPRET can't be used
+as-is inside function definitions,
+because they can't be compiled.
+
+If compilation is necessary,
+simply surround the call with `[`
+and `]`, e.g. [compile]/[interpret].
+This will compile the instructions,
+allowing the definition of functions
+which create functions.
+
+---------------------------------
+```
+
 
