@@ -7,11 +7,11 @@ from repl.repl import MelonREPL
 
 def main():
     melon: Final[Melon] = Melon()
-    shell: Final[MelonREPL] = MelonREPL(melon)
+    mrepl: Final[MelonREPL] = MelonREPL(melon)
 
     while True:
         try:
-            shell.loop()
+            mrepl.loop()
         except EOFError:
             print("\nEOF")
             return True
