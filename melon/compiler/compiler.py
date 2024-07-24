@@ -1,20 +1,21 @@
 from .errors import Melon_CompilerInvalidExpr
-from .tokenizer import Tokenizer
+from .tokstream import TokStream
+from .types.build import litnum, word
 
 
-class Compiler(Tokenizer):
+class Compiler(TokStream):
     def __init__(self):
-        Tokenizer.__init__(self)
+        TokStream.__init__(self)
 
     def compile(self, words):
-        self.words = iter(words.split())
+        self.start_line(words)
 
-        for w in self.words:
+        for w in self.stream:
             try:
-                yield self.literal(self.number(w))
+                yield litnum(w)
                 continue
             except ValueError:
-                yield self.word(self.is_word(w))
+                yield word(w)
                 continue
 
             raise Melon_CompilerInvalidExpr(f"Invalid word: {w}")
