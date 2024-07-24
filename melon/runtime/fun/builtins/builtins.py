@@ -5,24 +5,21 @@ from melon.runtime.doc.doc import docs
 
 
 # Eff: ( Quote -- Doc )
-@effects.effect("n", True)
-def help_word(n):
-    return docs(n)
+def help_word() -> effects.Effect:
+    return effects.Effect().input().map(docs)
 
 
 # Special functions, "Melon_" prefixed
 
 
 # Eff: ( -- literal ) _Takes: n
-@effects.
-def Melon_LIT(n):
-    return n
+def Melon_LIT(n) -> effects.Effects:
+    return effects.Effect().output(n)
 
 
 # Eff: ( -- ) _Fetches: strWord
-@effects.effect("...", False)
-def Melon_fetch(f, state):
-    return f(state)
+def Melon_fetch(strWord) -> effects.Effect:
+    return effects.Effect().fetch(strWord)
 
 
 # Exposing non-special functions
