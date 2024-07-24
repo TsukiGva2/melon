@@ -1,3 +1,6 @@
+from melon.runtime.stack.effects import Effect
+
+
 class Doc:
     def __init__(self, word):
         # get documentation from docs or docstring
@@ -7,5 +10,9 @@ class Doc:
         self.docs = ...  # TODO
 
 
-def docs(word):
-    return Doc(word).docs
+getDoc = Effect().reduce(Doc)
+
+
+class GetDoc(Effect):
+    def __init__(self):
+        Effect.__init__(self)
