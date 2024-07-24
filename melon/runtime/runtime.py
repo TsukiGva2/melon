@@ -1,6 +1,6 @@
 class Runtime:
     def __init__(self):
-        self
+        self.words = {}
 
-    def execute(self):
+    def execute(self, instructions):
         return
