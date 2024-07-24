@@ -1,5 +1,5 @@
-from .compiler import Compiler
-from .runtime import Runtime
+from melon.compiler.compiler import Compiler
+from melon.runtime.runtime import Runtime
 
 
 class System:
