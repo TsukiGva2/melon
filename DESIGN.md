@@ -52,7 +52,7 @@ project.
 
 A code example:
 
-```forth
+```lisp
 melon> fun: say-hello 'hello! output ;
 melon> say-hello
 hello!
@@ -72,7 +72,7 @@ complex operation we will see later (mode switching)
 
 relevant example session (along with some docs):
 
-```forth
+```lisp
 melon> 'on debug
 Debug set to 'on
 
@@ -83,6 +83,9 @@ Defined Macro maker
 
 melon> maker f
 Defined f
+
+melon> f
+what??
 
 melon> expand-last
 __________________________________

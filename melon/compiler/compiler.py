@@ -1,3 +1,4 @@
+from .errors import Melon_CompilerInvalidExpr
 from .tokenizer import Tokenizer
 
 
@@ -15,3 +16,5 @@ class Compiler(Tokenizer):
             except ValueError:
                 yield self.word(self.is_word(w))
                 continue
+
+            raise Melon_CompilerInvalidExpr(f"Invalid word: {w}")
