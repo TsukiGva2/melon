@@ -1,6 +1,10 @@
-from melon.runtime.effects.effects import Effect
-from melon.runtime.library.builtins.builtins import Melon_LIT
+from melon.runtime.effects.effects import Effect, literal
 
 
-def Literal(value) -> Effect:
-    return Melon_LIT(value)
+def number(num: str) -> float:
+    n = float(num)  # TODO @DESIGN @OPTIMIZATION: separate int/float types
+    return n
+
+
+def litnum(num: str) -> Effect:
+    return literal(number(num))

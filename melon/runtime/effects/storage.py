@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from runtime.word.builtins.builtins import MelonBuiltins
+from melon.runtime.library.builtins.builtins import MelonBuiltins
 
 from .errors import Melon_EffectsStorageResolveError
 

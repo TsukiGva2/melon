@@ -3,7 +3,7 @@ from .errors import Melon_CompilerUnexpectedEOF
 
 class TokStream:
     def __init__(self):
-        self.stream = iter([])
+        self.stream = None
 
     def start_line(self, line):
         self.stream = iter(line.split())

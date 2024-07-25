@@ -1,5 +1,5 @@
-from runtime.effects.storage import EffectStorage
-from runtime.stack.stack import Stack
+from melon.runtime.effects.storage import EffectStorage
+from melon.runtime.stack.stack import Stack
 
 
 class Runtime:
@@ -10,8 +10,8 @@ class Runtime:
     # .ASK, .RESOLVE
     def __getattr__(self, attr):
         match attr.upper():
-            case "ASK":
-                return self.stacker.ask
+            case "ASK" | "PUT":
+                return getattr(self.stacker, attr)
             case "RESOLVE":
                 return self.effects.resolve
             case _:
@@ -19,4 +19,4 @@ class Runtime:
 
     def execute(self, compstream):
         for effect in compstream:
-            effect.apply(self.stack)
+            effect.apply(self)

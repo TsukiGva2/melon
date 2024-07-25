@@ -1,6 +1,7 @@
 from .errors import Melon_CompilerInvalidExpr
 from .tokstream import TokStream
-from .types.build import litnum, word
+from .types.literal import litnum
+from .types.word import word
 
 
 class Compiler(TokStream):
@@ -15,7 +16,8 @@ class Compiler(TokStream):
                 yield litnum(w)
                 continue
             except ValueError:
-                yield word(w)
+                # Multiple effects ( literal -> fetch )
+                yield from word(w)
                 continue
 
             raise Melon_CompilerInvalidExpr(f"Invalid word: {w}")
