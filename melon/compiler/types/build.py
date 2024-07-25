@@ -23,12 +23,8 @@ def number(num: str) -> float:
     return n
 
 
-def literal(lit) -> Literal:
-    return Literal(lit)
-
-
 def litnum(num: str) -> Literal:
-    return literal(number(num))
+    return Literal(number(num))
 
 
 def word(word: str) -> Word:

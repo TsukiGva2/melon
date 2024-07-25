@@ -1,18 +1,9 @@
-from melon.runtime.stack.effects import Effect
+from melon.runtime.effects.effects import Effect
+from melon.runtime.effects.recipes.mapper import Mapper
 
 
-class Doc:
-    def __init__(self, word):
-        # get documentation from docs or docstring
-        self.word = word
+def document(eff: Effect):
+    return eff.
 
-        # find docs somehow
-        self.docs = ...  # TODO
-
-
-getDoc = Effect().reduce(Doc)
-
-
-class GetDoc(Effect):
-    def __init__(self):
-        Effect.__init__(self)
+Doc: Mapper = Mapper(document)
+getDoc: Effect = Effect() >> Doc

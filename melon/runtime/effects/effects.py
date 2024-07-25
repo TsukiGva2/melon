@@ -26,10 +26,10 @@ def cancel_outputs(f: Fragment):
 
 
 class Effect:
-    def __init__(self, fragments=deque([])):
+    def __init__(self, fragments=deque([]), recipes=deque([])):
         self.fragments = fragments
 
-        self.recipes = deque([])  # Reducers, Mappers and Filters
+        self.recipes = recipes  # Reducers, Mappers and Filters
         self.outputs = None
 
     def __or__(self, effect):
@@ -38,6 +38,12 @@ class Effect:
 
         # appendleft(effects.fragments)
         return Effect(effect.fragments + filter(cancel_outputs, self.fragments))
+
+    def __rshift__(self, recipe: Recipe):
+        if not isinstance(recipe, Recipe):
+            raise TypeError("Can't apply non-recipe to Effect entries")
+
+        return Effect(self.fragments, self.recipes)
 
     def input(self):
         """
@@ -94,11 +100,11 @@ class Effect:
         def resolve_inputs(fragments):
             entries.extendleft(runtime.ask(fragments.count(Fragment.IN)))
 
-        def resolve_recipes(recipes):
-            self.recipes = recipes + self.recipes
+        def resolve_recipes(new_recipes):
+            self.recipes = new_recipes + self.recipes
 
         def resolve_effect():
-            effect = runtime.fetchEffect(popper(entries))
+            effect = runtime.resolve(popper(entries))
 
             # applies come automatically with the fragments
             resolve_recipes(effect.recipes)
@@ -114,8 +120,14 @@ class Effect:
                     yield []
                 case [Fragment.FETCH, *tail]:
                     yield from fetch(resolve_effect() + tail)
+                case [_, *tail]:
+                    yield from fetch(tail)
 
         fragments = fetch(self.fragments)
+
+        print(
+            f"result: f: {fragments}, recipes: {self.recipes}, entries: {self.entries}"
+        )
 
 
 # Shorthand forms for simplicity

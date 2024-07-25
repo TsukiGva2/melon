@@ -1,12 +1,6 @@
-from functools import partial
+from melon.runtime.effects.effects import Effect
+from melon.runtime.library.builtins.builtins import Melon_fetch
 
-from melon.runtime.fun.builtins.builtins import Melon_fetch
 
-
-class Word:
-    def __init__(self, token):
-        self.token = token
-        self.compiled = partial(Melon_fetch, self.token)
-
-    def __call__(self, state):
-        return self.compiled(state)
+def Word(token) -> Effect:
+    return Melon_fetch(token)
