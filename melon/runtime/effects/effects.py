@@ -120,7 +120,6 @@ class Effect:
 
         return fragments
 
-    # TODO @OPTIMIZATION: Use lru_cache
     def resolve_effects(self, fragments, runtime):
         match fragments:
             case []:

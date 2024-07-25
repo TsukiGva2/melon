@@ -12,11 +12,16 @@ class Runtime:
         match attr.upper():
             case "ASK" | "PUT":
                 return getattr(self.stacker, attr)
-            case "RESOLVE":
-                return self.effects.resolve
+            case "RESOLVE" | "SAVE":
+                return getattr(self.effects, attr)
             case _:
                 raise AttributeError(f"No such method: {attr}")
 
+    def next(self):
+        return next(self.compilation_stream)
+
     def execute(self, compstream):
-        for effect in compstream:
+        self.compilation_stream = compstream
+
+        for effect in self.compilation_stream:
             effect.apply(self)
