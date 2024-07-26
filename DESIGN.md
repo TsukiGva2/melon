@@ -1,6 +1,8 @@
 # Melon - Redesigning Stackish
 
+Create a new context:
 ```
-( 1 + show )
+melon> ( 1 + show )
+    ─ CONTEXT
 ```
 

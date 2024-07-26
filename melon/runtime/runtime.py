@@ -1,4 +1,6 @@
+from melon.runtime.effects.context import EffectContext
 from melon.runtime.effects.storage import EffectStorage
+from melon.runtime.modes import RuntimeMode
 from melon.runtime.stack.stack import Stack
 
 
@@ -7,15 +9,7 @@ class Runtime:
         self.effects = EffectStorage()
         self.stacker = Stack()
 
-    # .ASK, .RESOLVE
-    def __getattr__(self, attr):
-        match attr.upper():
-            case "ASK" | "PUT":
-                return getattr(self.stacker, attr)
-            case "RESOLVE" | "SAVE":
-                return getattr(self.effects, attr)
-            case _:
-                raise AttributeError(f"No such method: {attr}")
+        self.runmode = RuntimeMode.IMMEDIATE
 
     def next(self):
         return next(self.compilation_stream)
@@ -24,4 +18,5 @@ class Runtime:
         self.compilation_stream = compstream
 
         for effect in self.compilation_stream:
-            effect.apply(self)
+            with EffectContext(self, name="main", mode=self.runmode) as ctx:
+                effect.apply(ctx)
