@@ -1,24 +1,60 @@
+from itertools import chain, islice
+
 from melon.runtime.modes import RuntimeMode
+
+from .entrylog import EntryLog, EntryType
 
 
 class EffectContext:
-    def __init__(self, runtime, mode=RuntimeMode.IMMEDIATE, name="anon"):
+    def __init__(self, runtime, mode=RuntimeMode.IMMEDIATE, name="anon", child=False):
+        self.inputs = iter([])
+        self.outputs = iter([])
+
         self.mode = mode
         self.name = name
 
+        self.is_child = child
+
+        self.entrylog = EntryLog()
+
         self.runtime = runtime
+
+    def annotate(self):
+        print(f"{self.entrylog.annotate()}\n")
+
+    def input(self, inputs):
+        self.inputs = inputs
+
+    def output(self, entries):
+        output = list(entries)
+
+        self.entrylog.out(output)
+
+        self.put(output)
+
+    def ask(self, count):
+        self.entrylog.increment(EntryType.IN)
+
+        return islice(chain(self.inputs, self.runtime.stacker.ask(count)), count)
+
+    def put(self, entries):
+        if self.is_child:
+            self.outputs = chain(entries, self.outputs)
+            return self.outputs
+
+        return self.runtime.stacker.put(*entries)
 
     # .ASK, .RESOLVE
     def __getattr__(self, attr):
         match attr.upper():
-            case "ASK" | "PUT":
-                return getattr(self.runtime.stacker, attr)
             case "RESOLVE" | "SAVE":
                 return getattr(self.runtime.effects, attr)
             case _:
-                raise AttributeError(f"No such method: {attr}")
+                return getattr(self.runtime, attr)
 
     def __enter__(self):
         return self
 
-    def __exit__(self): ...
+    def __exit__(self, *exc):
+        self.annotate()
+        print(f"Leaving {self.name}...")

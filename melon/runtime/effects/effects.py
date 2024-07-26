@@ -2,8 +2,9 @@
 
 from collections import deque
 from enum import Enum
-from itertools import chain
 from typing import Tuple, Union
+
+from .context import EffectContext
 
 # from melon.helpers.function import apply
 from .recipes.default import Literal
@@ -23,13 +24,12 @@ class Effect:
         self.recipes = deque([])  # Reducers, Mappers and Filters
 
         self.docs = ""
-        self.entrylog = deque([])
 
     def __or__(self, effect):
         if not isinstance(effect, Effect):
             raise TypeError("Can't join effect with non-effect")
 
-        # appendleft(effects.fragments)
+        # append(effects.fragments)
         self.fragments = effect.fragments + self.fragments
         self.recipes = effect.recipes + self.fragments
 
@@ -48,9 +48,9 @@ class Effect:
 
     def input(self):
         """
-        Get entry from runtime (stack)
+        Get entry from context (stack)
         """
-        self.fragments.appendleft(Fragment.IN)
+        self.fragments.append(Fragment.IN)
 
         return self
 
@@ -58,38 +58,27 @@ class Effect:
         """
         Fetch an Effect from an entry to the entry list
         """
-        self.fragments.appendleft(Fragment.FETCH)
+        self.fragments.append(Fragment.FETCH)
 
         return self
 
     def recipe(self, r: Recipe):
-        self.recipes.appendleft(r)
-        self.fragments.appendleft(Fragment.APPLY)
+        self.recipes.append(r)
+        self.fragments.append(Fragment.APPLY)
 
         return self
 
-    # logging
-
-    # TODO: this kinda slows everything down lol
-    def annotate(self, output):
-        inputs = " ".join(["n"] * self.fragments.count(Fragment.IN))
-        fetched = " ".join(map(str, self.entrylog))
-        output = " ".join(map(str, output))
-
-        print(f"\tIn: ({inputs} {fetched}) -> Out: ({output})\n")
-
     # Access controllers
 
-    def take_entry(self, reason="input"):
+    def take_entry(self, entries, context, reason="input"):
         print(f"\t• {reason.upper()}")
 
-        entry = next(self.entries)
-        self.entrylog.append(entry)
+        entry = next(entries)
 
         return entry
 
-    def take_recipe(self, reason="apply"):
-        recipe = self.recipes.pop()
+    def take_recipe(self, recipes, reason="apply"):
+        recipe = next(recipes)
 
         print(f"\t• {reason.upper()} {type(recipe).__name__.upper()}")
 
@@ -97,87 +86,42 @@ class Effect:
 
     # Appliers
 
-    def apply_recipe(self, target):
-        return self.take_recipe()(target)
+    def apply_recipe(self, target, recipes):
+        return self.take_recipe(recipes)(target)
 
-    # Resolvers
+    # Resolver
 
-    def resolve_recipes(self, new_recipes):
-        return new_recipes + self.recipes
+    def resolve_effects(self, context, entries):
+        entry = self.take_entry(entries, context, reason="fetch")
+        effect = context.resolve(entry)
 
-    def resolve_inputs(self, fragments, runtime):
-        return chain(self.entries, runtime.ask(fragments.count(Fragment.IN)))
+        with EffectContext(
+            context, mode=context.mode, name=f"{entry}", child=True
+        ) as ctx:
+            ctx.input(entries)
+            effect.apply(ctx)
 
-    def resolve_fragments(self, runtime):
-        entry = self.take_entry(reason="fetch")
-        effect = runtime.resolve(entry)
+            return ctx.outputs
 
-        # applies come automatically with the fragments
-        self.recipes = self.resolve_recipes(effect.recipes)
+    def apply(self, context):
+        entries = context.ask(self.fragments.count(Fragment.IN))
 
-        fragments = effect.fragments
-        self.entries = self.resolve_inputs(fragments, runtime)
+        print(self.recipes)
 
-        return fragments
+        recipes = iter(self.recipes)
 
-    def resolve_effects(self, fragments, runtime):
-        match fragments:
-            case []:
-                yield Fragment.END
+        print(self.fragments)
 
-            case [Fragment.FETCH, *tail]:
-                yield from (
-                    self.resolve_effects(
-                        self.resolve_fragments(runtime) + deque(tail), runtime
-                    )
-                )
-
-            case [Fragment.IN, *tail]:
-                yield from self.resolve_effects(tail, runtime)
-
-            case [head, *tail]:
-                yield from (chain([head], self.resolve_effects(tail, runtime)))
-
-    def apply(self, runtime):
-        """
-        1. recursively resolve fragments
-
-            1.1. inputs
-                Example:
-
-                    Suppose we did:
-                        effects.literal ( 'stack 'im 'a 'hey )
-
-                    [0] 'hey
-                    [1] 'im
-                    [2] 'a
-                    [3] 'stack
-
-                                       (slice?)
-                    Runtime.ask (4) ->   pop + appendleft x4 -> reverseiter [ 'stack 'a 'im 'hey ]
-
-                    entries <- reverseiter [ 'stack 'a 'im 'hey ]
-        """
-
-        # Fetches + Inputs
-        self.entries = runtime.ask(self.fragments.count(Fragment.IN))
-
-        fragments = self.resolve_effects(self.fragments, runtime)
-
-        for fragment in fragments:
+        for fragment in self.fragments:
             match fragment:
+                case Fragment.FETCH:
+                    entries = self.resolve_effects(context, entries)
                 case Fragment.APPLY:
-                    self.entries = self.apply_recipe(self.entries)
+                    entries = self.apply_recipe(entries, recipes)
                 case Fragment.END:
                     break  # TODO: signal end or do something
 
-        output = list(self.entries)
-
-        self.annotate(output)
-
-        runtime.put(*output)
-
-        return fragments
+        context.output(entries)
 
 
 # Effect >> Recipe
