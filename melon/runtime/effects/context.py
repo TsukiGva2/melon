@@ -3,10 +3,13 @@ from itertools import chain, islice
 from melon.runtime.modes import RuntimeMode
 
 from .entrylog import EntryLog, EntryType
+from .errors import Melon_EffectContextNoRuntimeError
 
 
 class EffectContext:
-    def __init__(self, runtime, mode=RuntimeMode.IMMEDIATE, name="anon", child=False):
+    def __init__(
+        self, parent=None, mode=RuntimeMode.IMMEDIATE, name="anon", child=False
+    ):
         self.inputs = iter([])
         self.outputs = iter([])
 
@@ -17,7 +20,11 @@ class EffectContext:
 
         self.entrylog = EntryLog()
 
-        self.runtime = runtime
+    def __getattribute__(self):
+        if self.runtime is None:
+            raise Melon_EffectContextNoRuntimeError
+
+        return object.__getattribute__(self)
 
     def annotate(self):
         print(f"{self.entrylog.annotate()}\n")
@@ -35,7 +42,7 @@ class EffectContext:
     def ask(self, count):
         self.entrylog.increment(EntryType.IN)
 
-        return islice(chain(self.inputs, self.runtime.stacker.ask(count)), count)
+        return islice(self.inputs, count)
 
     def put(self, entries):
         if self.is_child:
@@ -56,5 +63,6 @@ class EffectContext:
         return self
 
     def __exit__(self, *exc):
-        self.annotate()
-        print(f"Leaving {self.name}...")
+        # self.annotate()
+        # print(f"Leaving {self.name}...")
+        pass

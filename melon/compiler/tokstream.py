@@ -1,3 +1,5 @@
+import re
+
 from .errors import Melon_CompilerUnexpectedEOF
 
 
@@ -6,7 +8,7 @@ class TokStream:
         self.stream = None
 
     def start_line(self, line):
-        self.stream = iter(line.split())
+        self.stream = iter(re.findall(r"[^,\s]+", line))
 
     # utils
     def next(self, caller):

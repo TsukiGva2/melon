@@ -4,6 +4,6 @@ from melon.runtime.runtime import Runtime
 
 def test_application():
     runtime = Runtime()
-    eff = effects.fetch("help")
+    eff = effects.fetch()
 
     runtime.execute((eff,))

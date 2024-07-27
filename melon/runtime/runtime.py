@@ -11,6 +11,10 @@ class Runtime:
 
         self.runmode = RuntimeMode.IMMEDIATE
 
+        self.mainctx = EffectContext(name="main", mode=self.runmode)
+        self.mainctx.resolver(self.effects)
+        self.mainctx.input(self.stacker)
+
     def next(self):
         return next(self.compilation_stream)
 
@@ -18,5 +22,5 @@ class Runtime:
         self.compilation_stream = compstream
 
         for effect in self.compilation_stream:
-            with EffectContext(self, name="main", mode=self.runmode) as ctx:
+            with self.mainctx as ctx:
                 effect.apply(ctx)

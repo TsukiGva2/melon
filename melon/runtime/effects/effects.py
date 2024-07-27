@@ -71,7 +71,7 @@ class Effect:
     # Access controllers
 
     def take_entry(self, entries, context, reason="input"):
-        print(f"\t• {reason.upper()}")
+        # print(f"\t• {reason.upper()}")
 
         entry = next(entries)
 
@@ -80,7 +80,7 @@ class Effect:
     def take_recipe(self, recipes, reason="apply"):
         recipe = next(recipes)
 
-        print(f"\t• {reason.upper()} {type(recipe).__name__.upper()}")
+        # print(f"\t• {reason.upper()} {type(recipe).__name__.upper()}")
 
         return recipe
 
@@ -98,7 +98,7 @@ class Effect:
         with EffectContext(
             context, mode=context.mode, name=f"{entry}", child=True
         ) as ctx:
-            ctx.input(entries)
+            # ctx.input(entries)
             effect.apply(ctx)
 
             return ctx.outputs
@@ -106,11 +106,7 @@ class Effect:
     def apply(self, context):
         entries = context.ask(self.fragments.count(Fragment.IN))
 
-        print(self.recipes)
-
         recipes = iter(self.recipes)
-
-        print(self.fragments)
 
         for fragment in self.fragments:
             match fragment:

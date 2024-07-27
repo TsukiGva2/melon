@@ -20,3 +20,9 @@ class EntryLog:
 
     def out(self, output):
         self.output = output
+
+    def count_outputs(self):
+        return self.counts[EntryType.OUT]
+
+    def count_inputs(self):
+        return self.counts[EntryType.IN]
