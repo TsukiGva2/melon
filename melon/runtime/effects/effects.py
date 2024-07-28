@@ -72,16 +72,12 @@ class Effect:
 
     def take_entry(self, entries, context, reason="input"):
         # print(f"\t• {reason.upper()}")
-
         entry = next(entries)
-
         return entry
 
     def take_recipe(self, recipes, reason="apply"):
-        recipe = next(recipes)
-
         # print(f"\t• {reason.upper()} {type(recipe).__name__.upper()}")
-
+        recipe = next(recipes)
         return recipe
 
     # Appliers
@@ -91,17 +87,30 @@ class Effect:
 
     # Resolver
 
+    """
+        (
+            ( 'hey show ) 'Hello
+
+            Hello
+        )
+        
+        Call
+
+    > hey
+
+        Hello
+
+    > Error!
+    """
+
     def resolve_effects(self, context, entries):
         entry = self.take_entry(entries, context, reason="fetch")
         effect = context.resolve(entry)
 
         with EffectContext(
-            context, mode=context.mode, name=f"{entry}", child=True
+            entries, context.scope, mode=context.mode, name=f"{entry}"
         ) as ctx:
-            # ctx.input(entries)
-            effect.apply(ctx)
-
-            return ctx.outputs
+            return ctx.apply(effect)
 
     def apply(self, context):
         entries = context.ask(self.fragments.count(Fragment.IN))

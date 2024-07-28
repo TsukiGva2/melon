@@ -6,5 +6,4 @@ def document(eff: Effect) -> str:
     return eff.docs
 
 
-Doc: Mapper = Mapper(document)
-getDoc: Effect = Doc
+getDoc: Mapper = Mapper(document)

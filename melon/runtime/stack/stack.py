@@ -10,7 +10,10 @@ class Stack:
     def __init__(self):
         self.stack = LifoQueue()
 
-    def put(self, *entries):
+    def __iter__(self):
+        yield self.stack.get()
+
+    def put(self, entries):
         for entry in entries:
             self.stack.put(entry)
 
