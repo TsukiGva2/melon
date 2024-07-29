@@ -15,7 +15,7 @@ class Runtime:
         self.ctx = EffectContext(
             inputs=iter(self.stack),
             scope=self.scope,
-            output=self.stack,
+            output_buffer=self.stack,
             name="main",
             mode=RuntimeMode.IMMEDIATE,
         )
@@ -28,4 +28,6 @@ class Runtime:
 
         for effect in self.compilation_stream:
             with self.ctx as ctx:
+                # self.stack.put(
                 ctx.apply(effect)
+                # )

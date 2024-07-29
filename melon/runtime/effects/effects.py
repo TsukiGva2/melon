@@ -76,8 +76,8 @@ class Effect:
         return entry
 
     def take_recipe(self, recipes, reason="apply"):
-        # print(f"\t• {reason.upper()} {type(recipe).__name__.upper()}")
         recipe = next(recipes)
+        # print(f"\t• {reason.upper()} {type(recipe).__name__.upper()}")
         return recipe
 
     # Appliers
@@ -87,22 +87,6 @@ class Effect:
 
     # Resolver
 
-    """
-        (
-            ( 'hey show ) 'Hello
-
-            Hello
-        )
-        
-        Call
-
-    > hey
-
-        Hello
-
-    > Error!
-    """
-
     def resolve_effects(self, context, entries):
         entry = self.take_entry(entries, context, reason="fetch")
         effect = context.resolve(entry)
@@ -110,6 +94,8 @@ class Effect:
         with EffectContext(
             entries, context.scope, mode=context.mode, name=f"{entry}"
         ) as ctx:
+            # handle accessing inputs in case entries is too small
+            ctx.set_underflow_handler(context)
             return ctx.apply(effect)
 
     def apply(self, context):

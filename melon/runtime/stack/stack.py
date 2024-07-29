@@ -11,7 +11,7 @@ class Stack:
         self.stack = LifoQueue()
 
     def __iter__(self):
-        yield self.stack.get()
+        return iter(self.stack.get, None)
 
     def put(self, entries):
         for entry in entries:
