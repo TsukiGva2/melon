@@ -14,8 +14,6 @@ class EntryLog:
 
     def annotate(self):
         inputs = " ".join(["n"] * self.counts[EntryType.IN])
-
-        # 1 output = 1 x all entries
         output = " ".join(["n"] * self.counts[EntryType.OUT])
 
         return f"\tIn: ({inputs}) -> Out: ({output})"

@@ -98,9 +98,10 @@ class Effect:
             ctx.set_underflow_handler(context)
             return ctx.apply(effect)
 
+    # effect application
+
     def apply(self, context):
         entries = context.ask(self.fragments.count(Fragment.IN))
-
         recipes = iter(self.recipes)
 
         for fragment in self.fragments:

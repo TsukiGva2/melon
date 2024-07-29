@@ -31,3 +31,4 @@ class Runtime:
                 # self.stack.put(
                 ctx.apply(effect)
                 # )
+            self.stack.inspect()
