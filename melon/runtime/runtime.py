@@ -12,8 +12,9 @@ class Runtime:
 
         self.scope = EffectStorage(MelonBuiltins)
 
+        self.stack_iter = iter(self.stack)
+
         self.ctx = EffectContext(
-            inputs=iter(self.stack),
             scope=self.scope,
             output_buffer=self.stack,
             name="main",
@@ -29,6 +30,7 @@ class Runtime:
         for effect in self.compilation_stream:
             with self.ctx as ctx:
                 # self.stack.put(
+                ctx.set_inputs(self.stack_iter)
                 ctx.apply(effect)
                 # )
             self.stack.inspect()

@@ -4,6 +4,8 @@ from collections import deque
 from enum import Enum
 from typing import Tuple, Union
 
+from melon.runtime.modes import RuntimeMode
+
 from .context import EffectContext
 
 # from melon.helpers.function import apply
@@ -12,7 +14,7 @@ from .recipes.recipe import Recipe
 
 # from .errors import InvalidFragment
 
-Fragment = Enum("Fragment", ["FETCH", "IN", "APPLY", "END"])
+Fragment = Enum("Fragment", ["FETCH", "IN", "APPLY", "BUILD", "CLOSE", "END"])
 
 
 # definitions
@@ -22,6 +24,8 @@ class Effect:
     def __init__(self):
         self.fragments = deque([])
         self.recipes = deque([])  # Reducers, Mappers and Filters
+
+        self.bound_ctx = None
 
         self.docs = ""
 
@@ -40,6 +44,9 @@ class Effect:
             raise TypeError("Can't apply non-recipe to Effect entries")
 
         return self.recipe(recipe)
+
+    def bind(self, ctx):
+        self.bound_ctx = ctx
 
     # TODO: generate docs when Saving/Applying function (to fetch all things)
     # TODO: create a sandbox function, which only executes the function in a
@@ -60,6 +67,14 @@ class Effect:
         """
         self.fragments.append(Fragment.FETCH)
 
+        return self
+
+    def build(self):
+        self.fragments.append(Fragment.BUILD)
+        return self
+
+    def build_close(self):
+        self.fragments.append(Fragment.CLOSE)
         return self
 
     def recipe(self, r: Recipe):
@@ -91,19 +106,17 @@ class Effect:
         entry = self.take_entry(entries, context, reason="fetch")
         effect = context.resolve(entry)
 
-        with EffectContext(
-            entries, context.scope, mode=context.mode, name=f"{entry}"
-        ) as ctx:
-            # handle accessing inputs in case entries is too small
-            ctx.set_underflow_handler(context)
+        eff = effect.bound_ctx
+        if eff is None:
+            eff = EffectContext(context.scope, mode=context.mode, name=f"{entry}")
+
+        with eff as ctx:
+            ctx.set_inputs(entries, fallback=context.inputs)
             return ctx.apply(effect)
 
     # effect application
 
-    def apply(self, context):
-        entries = context.ask(self.fragments.count(Fragment.IN))
-        recipes = iter(self.recipes)
-
+    def eval_fragments(self, context, entries, recipes):
         for fragment in self.fragments:
             match fragment:
                 case Fragment.FETCH:
@@ -114,6 +127,29 @@ class Effect:
                     break  # TODO: signal end or do something
 
         context.output(entries)
+
+    def compile_fragments(self, context):
+        context.output(self)
+
+    def apply(self, context):
+        # BUILD -> eval only setmodes
+        # CLOSE -> go back to immediate
+
+        # (     <- setmode BUILD (Word + fetch)
+        #   Word  <- Word (Word + fetch)
+        #   Word2 <- Word (Word + fetch)
+        #   1     <- Literal
+        #   'a    <- Literal
+        # )     <- setmode CLOSE (Word + fetch)
+        # Melon <- Assignment (Word + fetch)
+
+        if context.mode == RuntimeMode.IMMEDIATE:
+            entries = context.ask(self.fragments.count(Fragment.IN))
+            recipes = iter(self.recipes)
+
+            self.eval_fragments(context, entries, recipes)
+        else:
+            self.compile_fragments(context)
 
 
 # Effect >> Recipe

@@ -11,9 +11,9 @@ from .entrylog import EntryLog, EntryType
 
 class EffectContext:
     def __init__(
-        self, inputs, scope, output_buffer=None, mode=RuntimeMode.IMMEDIATE, name="anon"
+        self, scope, output_buffer=None, mode=RuntimeMode.IMMEDIATE, name="anon"
     ):
-        self.inputs = inputs
+        self.inputs = iter([])
         self.outputs = iter([])
 
         self.entrylog = EntryLog()
@@ -23,6 +23,7 @@ class EffectContext:
         self.output_buffer = output_buffer
 
         self.mode = mode
+
         self.name = name
 
     def annotate(self):
@@ -39,6 +40,9 @@ class EffectContext:
         self.entrylog.increment(EntryType.OUT)
         self.put(entries)
 
+    def set_inputs(self, inputs, fallback=[]):
+        self.inputs = chain(inputs, fallback)
+
     def ask(self, count):
         self.entrylog.increment(EntryType.IN)
         return islice(self.inputs, count)
@@ -46,9 +50,6 @@ class EffectContext:
     def apply(self, effect):
         effect.apply(self)
         return self.outputs
-
-    def set_underflow_handler(self, ctx):
-        self.inputs = chain(self.inputs, ctx.inputs)
 
     def __enter__(self):
         return self
